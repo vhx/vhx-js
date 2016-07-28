@@ -12,4 +12,9 @@ Anytime you make changes to the lib files, just run `gulp` in the root of the fo
 ## Work
 Currently only works with a site specific API key. Token-based auth (for Crystal) coming soon.
 
+## Use
+- Create your API key
+- Create a new vhx instance like so `var vhxjs = new vhx('YOUR_API_KEY')`
+- Follow the Node docs as shown on http://dev.vhx.tv/docs/api/
+
 
