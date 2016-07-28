@@ -1,5 +1,6 @@
 # vhx-js
 VHX Javascript SDK - Read-only API calls, in your browser!
+
 ![alt tag](https://dl.dropboxusercontent.com/u/7390609/stockdev.jpg)
 
 ## Install
