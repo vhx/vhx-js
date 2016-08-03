@@ -29,4 +29,22 @@ gulp.task('minbuild', function() {
         .pipe(gulp.dest('./dist'));
 });
 
-gulp.task('default', ['regbuild', 'minbuild']);
+gulp.task('otherbuild', function() {
+  return browserify({entries: './lib/vhx.js', debug: true})
+        .transform("babelify", { presets: ["es2015"] })
+        .bundle()
+        .pipe(source('vhx.js'))
+        .pipe(buffer())
+        .pipe(gulp.dest('./dist'));
+});
+
+gulp.task('vhxbuild', function() {
+  return browserify({entries: './lib/vhx.js', debug: true})
+        .transform("babelify", { presets: ["es2015"] })
+        .bundle()
+        .pipe(source('vhx.js'))
+        .pipe(buffer())
+        .pipe(gulp.dest('../crystal/vendor/assets/javascripts/', { overwrite: true }));
+});
+
+gulp.task('default', ['otherbuild', 'minbuild']);
