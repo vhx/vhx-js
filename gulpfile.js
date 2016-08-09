@@ -5,19 +5,8 @@ var source         = require('vinyl-source-stream');
 var buffer         = require('vinyl-buffer');
 var uglify         = require('gulp-uglify');
 var sourcemaps     = require('gulp-sourcemaps');
-var gulpBrowserify = require('gulp-browserify');
-var babel          = require('gulp-babel');
 
-gulp.task('regbuild', function() {
-  gulp.src('lib/vhx.js')
-    .pipe(babel({
-      presets: ['es2015']
-    }))
-    .pipe(gulpBrowserify())
-    .pipe(gulp.dest('dist'))
-});
-
-gulp.task('minbuild', function() {
+gulp.task('minified_build', function() {
   return browserify({entries: './lib/vhx.js', debug: true})
         .transform("babelify", { presets: ["es2015"] })
         .bundle()
@@ -26,19 +15,19 @@ gulp.task('minbuild', function() {
         .pipe(sourcemaps.init())
         .pipe(uglify())
         .pipe(sourcemaps.write('./maps'))
-        .pipe(gulp.dest('./dist'));
+        .pipe(gulp.dest('./dist', { overwrite: true }));
 });
 
-gulp.task('otherbuild', function() {
-  return browserify({entries: './lib/vhx.js', debug: true})
+gulp.task('maxified_build', function() {
+  return browserify({entries: './lib/vhx.js'})
         .transform("babelify", { presets: ["es2015"] })
         .bundle()
         .pipe(source('vhx.js'))
         .pipe(buffer())
-        .pipe(gulp.dest('./dist'));
+        .pipe(gulp.dest('./dist', { overwrite: true }));
 });
 
-gulp.task('vhxbuild', function() {
+gulp.task('dev_build', function() {
   return browserify({entries: './lib/vhx.js', debug: true})
         .transform("babelify", { presets: ["es2015"] })
         .bundle()
@@ -47,4 +36,5 @@ gulp.task('vhxbuild', function() {
         .pipe(gulp.dest('../crystal/vendor/assets/javascripts/', { overwrite: true }));
 });
 
-gulp.task('default', ['otherbuild', 'minbuild']);
+gulp.task('default', ['maxified_build', 'minified_build']);
+gulp.task('dev', ['dev_build']);
