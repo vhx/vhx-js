@@ -1,20 +1,54 @@
-# vhx-js
-VHX Javascript SDK - Read-only API calls, in your browser!
+# VHX Javascript API Client
 
-![alt tag](https://dl.dropboxusercontent.com/u/7390609/stockdev.jpg)
+API applications can be created in the [VHX admin](https://www.vhx.tv/admin/platforms) or by emailing [api@vhx.tv](mailto:api@vhx.tv)
 
-## Install
-- clone the repo and run `npm install`. easy peasy.
+### Installation
 
-## Build
-Anytime you make changes to the lib files, just run `gulp` in the root of the folder. This will build concatenated and uglified dist files. I'll later add livereload functionality.
+`npm install vhxjs`
 
-## Work
-Currently only works with a site specific API key. Token-based auth (for Crystal) coming soon.
+### Documentation
 
-## Use
-- Create your API key
-- Create a new vhx instance like so `var vhxjs = new vhx('YOUR_API_KEY')`
-- Follow the Node docs as shown on http://dev.vhx.tv/docs/api/
+Documentation, including a step-by-step tutorial is available on the [VHX Developer Docs ](http://dev.vhx.tv/api?javascript) site.
+For Full API reference [go here](http://dev.vhx.tv/docs/api?javascript).
 
+### Getting Started
 
+Before requesting your first resource, you must setup your instance of the VHX Client:
+
+```js
+var vhxjs = new vhx('your Public VHX API key');
+```
+
+Every resource method has two arguments. The first argument is an options object or identifier and the second, an optional callback:
+
+```js
+
+// example customer create
+vhxjs.customers.list({
+  email: 'customer@email.com',
+  name: 'First Last'
+}, function(err, customer){
+  // err, = error is false if no error occurred
+  // customer = the created customer object
+});
+```
+
+### Resources & methods
+
+products
+  * [`retrieve`](http://dev.vhx.tv/docs/api/?javascript#product-retrieve)
+  * [`all`](http://dev.vhx.tv/docs/api/?javascript#product-list)
+
+customers
+  * [`retrieve`](http://dev.vhx.tv/docs/api/?javascript#customer-retrieve)
+  * [`all`](http://dev.vhx.tv/docs/api/?javascript#customer-list)
+
+videos
+  * [`retrieve`](http://dev.vhx.tv/docs/api?javascript#videos-get)
+  * [`all`](http://dev.vhx.tv/docs/api?javascript#videos-list)
+  * [`files`](http://dev.vhx.tv/docs/api/?javascript#videos-list-files)
+
+collections
+  * [`retrieve`](http://dev.vhx.tv/docs/api?javascript#collections-retrieve)
+  * [`all`](http://dev.vhx.tv/docs/api?javascript#collections-list)
+  * [`items`](http://dev.vhx.tv/docs/api?javascript#collection-items-list)
