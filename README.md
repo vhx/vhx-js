@@ -1,6 +1,6 @@
 # VHX Javascript API Client
 
-API applications can be created in the [VHX admin](https://www.vhx.tv/admin/platforms) or by emailing [api@vhx.tv](mailto:api@vhx.tv)
+Currently not ready for production use, but in Pre-Release. Publishable VHX API keys with limited scope will be required for use.
 
 ### Installation
 
@@ -8,7 +8,6 @@ API applications can be created in the [VHX admin](https://www.vhx.tv/admin/plat
 
 ### Documentation
 
-Documentation, including a step-by-step tutorial is available on the [VHX Developer Docs ](http://dev.vhx.tv/api?javascript) site.
 For Full API reference [go here](http://dev.vhx.tv/docs/api?javascript).
 
 ### Getting Started
@@ -78,10 +77,10 @@ $('.next-page').on('click', function() {
 ```
 
 * `nextPage(callback:Function)`<br>
-Get the next page in the request. If you are on the last page the 'No more pages to request' error will be thrown.
+Gets the next page in the request. If you are on the last page the *No more pages to request* error will be thrown.
 
 * `previousPage(callback:Function)`<br>
-Get the previous page in the request. If you are on the first page the 'No previous pages to request' error will be thrown.
+Gets the previous page in the request. If you are on the first page the *No previous pages to request* error will be thrown.
 
 * `firstPage(callback:Function)`<br>
 Gets the first page in the request.
@@ -90,7 +89,7 @@ Gets the first page in the request.
 Gets the last page in the request.
 
 * `goToPage(page:Integer, callback:Function)`<br>
-Gets the specified page in the request. If a non-integer or page greater than is available is requested the 'You must pass a valid page number' error will be thrown.
+Gets the specified page in the request. If a non-integer or page greater than pages available is requested the *You must pass a valid page number* error will be thrown.
 
 * `merge(response:Object)`<br>
-Merges a page with previously requested page. It is recommended to use this when using the `nextPage` method in a `Load More` scenario where you are appending items to a growing cascade.
+Merges a page with previously requested page. It is recommended to use this when using the `nextPage` method in a "Load More" scenario where you are appending items to a growing cascade.
