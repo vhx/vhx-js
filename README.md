@@ -31,7 +31,7 @@ vhxjs.collections.all({
 });
 ```
 
-### Resources Methods
+### Resources & Methods
 
 products
   * [`retrieve`](http://dev.vhx.tv/docs/api/?javascript#product-retrieve)
