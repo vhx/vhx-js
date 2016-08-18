@@ -5,12 +5,110 @@ var _VHX_DEFAULTS = {
   HOST: 'api.crystal.dev',
   PROTOCOL: 'http://',
   API_VERSION: require('../package.json').version,
-  TIMEOUT: '30000'
+  TIMEOUT: '30000',
+  TOKEN_HOST: 'crystal.dev'
 };
 
 module.exports = _VHX_DEFAULTS;
 
-},{"../package.json":13}],2:[function(require,module,exports){
+},{"../package.json":15}],2:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Paginate = function () {
+  function Paginate(resource, args) {
+    _classCallCheck(this, Paginate);
+
+    var _this = this;
+
+    _this.resource = resource;
+    _this.response = args.body;
+    _this.options = args.options;
+    _this.page = _this.options.page ? _this.options.page : 1;
+    _this.method = args.method;
+    _this.last = Math.ceil(args.body.total / (args.body.count * _this.page));
+
+    ['nextPage', 'previousPage', 'firstPage', 'lastPage'].map(function (key) {
+      _this.response[key] = function (callback) {
+        _this[key](_this, callback);
+      };
+    });
+
+    _this.response.goToPage = function (num, callback) {
+      _this.goToPage(_this, num, callback);
+    };
+
+    _this.response.merge = function (_this) {
+      _this._embedded[_this.object] = this._embedded[_this.object].concat(_this._embedded[_this.object]);
+      _this.count = this.count + _this.count;
+
+      return _this;
+    };
+  }
+
+  _createClass(Paginate, [{
+    key: 'get',
+    value: function get() {
+      var _this = this;
+
+      return _this.response;
+    }
+  }, {
+    key: 'nextPage',
+    value: function nextPage(_this, callback) {
+      _this.options.page = _this.page + 1;
+
+      if (_this.options.page > _this.last) {
+        throw 'No more pages to request';
+      }
+
+      _this.resource[_this.method](_this.options, callback);
+    }
+  }, {
+    key: 'previousPage',
+    value: function previousPage(_this, callback) {
+      if (_this.page === 1) {
+        throw 'No previous pages to request';
+      }
+
+      _this.options.page = _this.page - 1;
+      _this.resource[_this.method](_this.options, callback);
+    }
+  }, {
+    key: 'firstPage',
+    value: function firstPage(_this, callback) {
+      _this.options.page = 1;
+      _this.resource[_this.method](_this.options, callback);
+    }
+  }, {
+    key: 'lastPage',
+    value: function lastPage(_this, callback) {
+      _this.options.page = _this.last;
+      _this.resource[_this.method](_this.options, callback);
+    }
+  }, {
+    key: 'goToPage',
+    value: function goToPage(_this, num, callback) {
+      num = parseInt(num, 10);
+
+      if (num > 0 && num <= _this.last) {
+        _this.options.page = num;
+        return _this.resource[_this.method](_this.options, callback);
+      }
+
+      throw 'You must pass a valid page number';
+    }
+  }]);
+
+  return Paginate;
+}();
+
+module.exports = Paginate;
+
+},{}],3:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -20,7 +118,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var request = require('superagent');
-var defaults = require('./defaults');
+var paginate = require('./paginate');
 
 var Resource = function () {
   function Resource(api, path, methods, isToken) {
@@ -125,10 +223,10 @@ var Resource = function () {
     key: 'getToken',
     value: function getToken(cb) {
       var _this = this;
-      var path = '/admin/collections/token';
+      var path = '' + _this._api.protocol + window.location.host + '/tokens';
 
-      request.get(path).then(function (data) {
-        _this._api.token = JSON.parse(data.text).token;
+      request.post(path).set('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content')).then(function (data) {
+        _this._api.token = data.body.token;
         if (cb) cb();
       }, function (data) {
         console.log(data);
@@ -206,20 +304,23 @@ var Resource = function () {
           _this.errorHandler({
             status: 408,
             body: '{"message": "The request timed out.","documentation_url": "http://dev.vhx.tv/docs/api"}',
-            callback: args.callback
+            callback: args.callback || ''
           });
         }
 
         if (!err && response.statusCode >= 200 && response.statusCode < 300) {
           _this.successHandler({
             body: response.body || null,
-            callback: args.callback
+            callback: args.callback,
+            options: args.options,
+            object: _this.path,
+            method: args.client_method
           });
         } else {
           _this.errorHandler({
             status: 408,
             body: '{"message": "The request timed out.","documentation_url": "http://dev.vhx.tv/docs/api"}',
-            callback: args.callback
+            callback: args.callback || ''
           });
         }
       });
@@ -227,7 +328,17 @@ var Resource = function () {
   }, {
     key: 'successHandler',
     value: function successHandler(args) {
-      args.callback(false, args.body);
+      var response = args.body;
+
+      if (args.body.count && args.body.count < args.body.total) {
+        response = new paginate(this, args).get();
+      }
+
+      response.object = args.object;
+
+      if (args.callback) {
+        args.callback(false, response);
+      }
     }
   }, {
     key: 'errorHandler',
@@ -243,7 +354,10 @@ var Resource = function () {
 
       error.status = args.status;
       error.type = error_types[error.status];
-      args.callback(error, null);
+
+      if (args.callback) {
+        args.callback(error, null);
+      }
     }
   }, {
     key: 'isCallbackFunction',
@@ -265,7 +379,34 @@ var Resource = function () {
 
 module.exports = Resource;
 
-},{"./defaults":1,"superagent":9}],3:[function(require,module,exports){
+},{"./paginate":2,"superagent":11}],4:[function(require,module,exports){
+'use strict';
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Resource = require('../resource');
+
+var Browse = function (_Resource) {
+  _inherits(Browse, _Resource);
+
+  function Browse(api) {
+    _classCallCheck(this, Browse);
+
+    return _possibleConstructorReturn(this, Object.getPrototypeOf(Browse).call(this, api, 'browse', ['all', 'list']));
+  }
+
+  return Browse;
+}(Resource);
+
+;
+
+module.exports = Browse;
+
+},{"../resource":3}],5:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -292,7 +433,7 @@ var Collection = function (_Resource) {
 
 module.exports = Collection;
 
-},{"../resource":2}],4:[function(require,module,exports){
+},{"../resource":3}],6:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -319,7 +460,7 @@ var Customer = function (_Resource) {
 
 module.exports = Customer;
 
-},{"../resource":2}],5:[function(require,module,exports){
+},{"../resource":3}],7:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -346,7 +487,7 @@ var Product = function (_Resource) {
 
 module.exports = Product;
 
-},{"../resource":2}],6:[function(require,module,exports){
+},{"../resource":3}],8:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -373,7 +514,7 @@ var Video = function (_Resource) {
 
 module.exports = Video;
 
-},{"../resource":2}],7:[function(require,module,exports){
+},{"../resource":3}],9:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -381,10 +522,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _defaults = require('./defaults');
 
 var _defaults2 = _interopRequireDefault(_defaults);
-
-var _resource = require('./resource');
-
-var _resource2 = _interopRequireDefault(_resource);
 
 var _collections = require('./resources/collections');
 
@@ -402,6 +539,10 @@ var _products = require('./resources/products');
 
 var _products2 = _interopRequireDefault(_products);
 
+var _browse = require('./resources/browse');
+
+var _browse2 = _interopRequireDefault(_browse);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -410,7 +551,8 @@ var resources = {
   collections: _collections2.default,
   videos: _videos2.default,
   products: _products2.default,
-  customer: _customers2.default
+  customer: _customers2.default,
+  browse: _browse2.default
 };
 
 var vhx = function () {
@@ -444,7 +586,8 @@ var vhx = function () {
         token: null,
         host: _defaults2.default.HOST,
         protocol: _defaults2.default.PROTOCOL,
-        timeout: _defaults2.default.TIMEOUT
+        timeout: _defaults2.default.TIMEOUT,
+        token_host: _defaults2.default.TOKEN_HOST
       };
     }
   }, {
@@ -463,7 +606,7 @@ var vhx = function () {
 
 window.vhx = vhx;
 
-},{"./defaults":1,"./resource":2,"./resources/collections":3,"./resources/customers":4,"./resources/products":5,"./resources/videos":6}],8:[function(require,module,exports){
+},{"./defaults":1,"./resources/browse":4,"./resources/collections":5,"./resources/customers":6,"./resources/products":7,"./resources/videos":8}],10:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -628,7 +771,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],9:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /**
  * Root reference for iframes.
  */
@@ -1604,7 +1747,7 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-object":10,"./request":12,"./request-base":11,"emitter":8}],10:[function(require,module,exports){
+},{"./is-object":12,"./request":14,"./request-base":13,"emitter":10}],12:[function(require,module,exports){
 /**
  * Check if `obj` is an object.
  *
@@ -1619,7 +1762,7 @@ function isObject(obj) {
 
 module.exports = isObject;
 
-},{}],11:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /**
  * Module of mixed-in functions shared between node and client code
  */
@@ -1968,7 +2111,7 @@ exports.send = function(data){
   return this;
 };
 
-},{"./is-object":10}],12:[function(require,module,exports){
+},{"./is-object":12}],14:[function(require,module,exports){
 // The node and browser modules expose versions of this with the
 // appropriate constructor function bound as first argument
 /**
@@ -2002,17 +2145,21 @@ function request(RequestConstructor, method, url) {
 
 module.exports = request;
 
-},{}],13:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 module.exports={
-  "name": "vhx-js",
-  "version": "0.0.1",
-  "description": "VHX Javascript SDK",
+  "name": "vhxjs",
+  "version": "1.0.0-beta",
+  "description": "VHX Javascript API Client",
   "main": "vhx.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "author": "VHX",
+  "homepage": "https://github.com/vhx/vhx-node",
+  "contributors": ["David Gonzalez <david@vhx.tv> ", "Scott Robertson <scott@vhx.tv>"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vhx/vhx-js.git"
   },
-  "author": "David Gonzalez",
-  "license": "ISC",
+  "bugs:": "https://github.com/vhx/vhx-js/issues",
   "devDependencies": {
     "babel-cli": "^6.11.4",
     "babel-preset-es2015": "^6.9.0",
@@ -2030,4 +2177,4 @@ module.exports={
   }
 }
 
-},{}]},{},[7]);
+},{}]},{},[9]);

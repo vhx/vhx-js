@@ -8,10 +8,10 @@
   "contributors": ["David Gonzalez <david@vhx.tv> ", "Scott Robertson <scott@vhx.tv>"],
   "license": "MIT",
   "repository": {
-    "type": "git",
-    "url": "git://github.com/vhx/vhx-js.git"
-  },
-  "bugs:": "https://github.com/vhx/vhx-js/issues",
+    "type": "git",
+    "url": "git://github.com/vhx/vhx-js.git"
+  },
+  "bugs:": "https://github.com/vhx/vhx-js/issues",
   "devDependencies": {
     "babel-cli": "^6.11.4",
     "babel-preset-es2015": "^6.9.0",
