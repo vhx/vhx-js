@@ -23,17 +23,16 @@ Every resource method has two arguments. The first argument is an options object
 
 ```js
 
-// example customer create
-vhxjs.customers.list({
-  email: 'customer@email.com',
-  name: 'First Last'
-}, function(err, customer){
+// example collections request
+vhxjs.collections.all({
+ product: 'https://api.vhx.tv/products/1'
+}, function(err, collections){
   // err, = error is false if no error occurred
-  // customer = the created customer object
+  // collections = the response object
 });
 ```
 
-### Resources & methods
+### Resources Methods
 
 products
   * [`retrieve`](http://dev.vhx.tv/docs/api/?javascript#product-retrieve)
@@ -55,31 +54,43 @@ collections
 
 
 ### Pagination Methods
-Paginated resource responses will have helper methods attached for conveniently requesting the next, previous, first, last, and specific pages.
+Paginated resources will have helper methods available in the response object for conveniently requesting the next, previous, first, last, and specific pages.
 
 ```javascript
 var collectionList;
 
 vhxjs.collections.all({
   per_page: 25
-}, function(err, collection) {
-  collectionList = collection;
+}, function(err, collections) {
+  collectionList = collections;
 })
 
+// example next page request with jquery
 $('.next-page').on('click', function() {
-  collectionList.nextPage(function(err, collection) {
-    // if you the items and count to be concatenated use the merge method would not use the merge method
-    collectionList.merge(page);
+  collectionList.nextPage(function(err, collections) {
+    // if you want the items and count to be concatenated
+    collectionList.merge(collections);
 
     // if you just want the one page
-    collectionList = page;
+    collectionList = collections;
   });
 })
-````
+```
 
-nextPage(callback:Function)
-previousPage(callback:Function)
-firstPage(callback:Function)
-lastPage(callback:Function)
-goToPage(page:Integer, callback:Function)
-merge(collection:Object)
+* `nextPage(callback:Function)`<br>
+Get the next page in the request. If you are on the last page the 'No more pages to request' error will be thrown.
+
+* `previousPage(callback:Function)`<br>
+Get the previous page in the request. If you are on the first page the 'No previous pages to request' error will be thrown.
+
+* `firstPage(callback:Function)`<br>
+Gets the first page in the request.
+
+* `lastPage(callback:Function)`<br>
+Gets the last page in the request.
+
+* `goToPage(page:Integer, callback:Function)`<br>
+Gets the specified page in the request. If a non-integer or page greater than is available is requested the 'You must pass a valid page number' error will be thrown.
+
+* `merge(response:Object)`<br>
+Merges a page with previously requested page. It is recommended to use this when using the `nextPage` method in a `Load More` scenario where you are appending items to a growing cascade.
