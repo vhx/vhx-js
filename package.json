@@ -1,13 +1,17 @@
 {
-  "name": "vhx-js",
-  "version": "0.0.1",
-  "description": "VHX Javascript SDK",
+  "name": "vhxjs",
+  "version": "1.0.0-beta",
+  "description": "VHX Javascript API Client",
   "main": "vhx.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "David Gonzalez",
-  "license": "ISC",
+  "author": "VHX",
+  "homepage": "https://github.com/vhx/vhx-node",
+  "contributors": ["David Gonzalez <david@vhx.tv> ", "Scott Robertson <scott@vhx.tv>"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vhx/vhx-js.git"
+  },
+  "bugs:": "https://github.com/vhx/vhx-js/issues",
   "devDependencies": {
     "babel-cli": "^6.11.4",
     "babel-preset-es2015": "^6.9.0",
