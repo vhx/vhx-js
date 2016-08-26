@@ -27,13 +27,4 @@ gulp.task('maxified_build', function() {
         .pipe(gulp.dest('./dist', { overwrite: true }));
 });
 
-gulp.task('dev', function() {
-  return browserify({entries: './lib/vhx.js'})
-        .transform("babelify", { presets: ["es2015"] })
-        .bundle()
-        .pipe(source('vhx.js'))
-        .pipe(buffer())
-        .pipe(gulp.dest('../crystal/vendor/assets/javascripts', { overwrite: true }));
-});
-
 gulp.task('default', ['maxified_build', 'minified_build']);
