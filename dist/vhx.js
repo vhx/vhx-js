@@ -1,13 +1,37 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
-var _VHX_DEFAULTS = {
-  HOST: 'api.crystal.dev',
-  PROTOCOL: 'http://',
-  API_VERSION: require('../package.json').version,
-  TIMEOUT: '30000',
-  TOKEN_HOST: 'crystal.dev'
-};
+if (window.location.href.match(/crystal/)) {
+  var _VHX_DEFAULTS2 = {
+    HOST: 'api.crystal.dev',
+    PROTOCOL: 'http://',
+    API_VERSION: require('../package.json').version,
+    TIMEOUT: '30000',
+    TOKEN_HOST: 'crystal.dev'
+  };
+}
+
+if (window.location.href.match(/vhx/)) {
+  var _VHX_DEFAULTS3 = {
+    HOST: 'api.vhx.tv',
+    PROTOCOL: 'https://',
+    API_VERSION: require('../package.json').version,
+    TIMEOUT: '30000',
+    TOKEN_HOST: 'vhx.tv'
+  };
+}
+
+if (window.location.href.match(/vhxqa1|vhxqa2|vhxqa3|vhxqa4/)) {
+  var current_host = window.location.href.match(/vhxqa1|vhxqa2|vhxqa3|vhxqa4/)[0];
+
+  var _VHX_DEFAULTS4 = {
+    HOST: current_host,
+    PROTOCOL: 'https://',
+    API_VERSION: require('../package.json').version,
+    TIMEOUT: '30000',
+    TOKEN_HOST: current_host + '.com'
+  };
+}
 
 module.exports = _VHX_DEFAULTS;
 
@@ -243,7 +267,12 @@ var Resource = function () {
       var _this = this,
           params = {};
 
-      params.url = _this._api.protocol + _this._api.host + '/' + _this.path;
+      if (id.match(/me|watching/)) {
+        params.url = '' + _this._api.protocol + _this._api.host + '/me/watching';
+      } else {
+        params.url = '' + _this._api.protocol + _this._api.host + '/' + _this.path;
+      }
+
       params.timeout = _this._api.timeout;
 
       if (_this._api.auth) {
@@ -254,11 +283,11 @@ var Resource = function () {
 
       params.qs = options || null;
 
-      if (!client_method.match(/^list$|^all$/)) {
+      if (!client_method.match(/^list$|^all$/) && !id.match(/me|watching/)) {
         params.url += '/' + id;
       }
 
-      if (client_method.match(/items/i)) {
+      if (client_method.match(/items/i) && !id.match(/me|watching/)) {
         params.url += '/items';
       }
 
@@ -2148,7 +2177,7 @@ module.exports = request;
 },{}],15:[function(require,module,exports){
 module.exports={
   "name": "vhxjs",
-  "version": "1.0.0-beta",
+  "version": "1.0.0-beta.2",
   "description": "VHX Javascript API Client",
   "main": "vhx.js",
   "author": "VHX",
