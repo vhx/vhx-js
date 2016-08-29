@@ -1,37 +1,13 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
-if (window.location.href.match(/crystal/)) {
-  var _VHX_DEFAULTS2 = {
-    HOST: 'api.crystal.dev',
-    PROTOCOL: 'http://',
-    API_VERSION: require('../package.json').version,
-    TIMEOUT: '30000',
-    TOKEN_HOST: 'crystal.dev'
-  };
-}
-
-if (window.location.href.match(/vhx/)) {
-  var _VHX_DEFAULTS3 = {
-    HOST: 'api.vhx.tv',
-    PROTOCOL: 'https://',
-    API_VERSION: require('../package.json').version,
-    TIMEOUT: '30000',
-    TOKEN_HOST: 'vhx.tv'
-  };
-}
-
-if (window.location.href.match(/vhxqa1|vhxqa2|vhxqa3|vhxqa4/)) {
-  var current_host = window.location.href.match(/vhxqa1|vhxqa2|vhxqa3|vhxqa4/)[0];
-
-  var _VHX_DEFAULTS4 = {
-    HOST: current_host,
-    PROTOCOL: 'https://',
-    API_VERSION: require('../package.json').version,
-    TIMEOUT: '30000',
-    TOKEN_HOST: current_host + '.com'
-  };
-}
+var _VHX_DEFAULTS = {
+  HOST: 'api.vhx.tv',
+  PROTOCOL: 'https://',
+  API_VERSION: require('../package.json').version,
+  TIMEOUT: '30000',
+  TOKEN_HOST: 'vhx.tv'
+};
 
 module.exports = _VHX_DEFAULTS;
 
@@ -585,7 +561,7 @@ var resources = {
 };
 
 var vhx = function () {
-  function vhx(key) {
+  function vhx(key, opts) {
     _classCallCheck(this, vhx);
 
     var _this = this;
@@ -594,29 +570,33 @@ var vhx = function () {
       return new vhx(key);
     }
 
-    _this.api = key ? _this.setApi(key) : _this.setToken();
+    _this.api = key ? _this.setApi(key, opts) : _this.setToken(opts);
     _this.prepareResources();
   }
 
   _createClass(vhx, [{
     key: 'setApi',
     value: function setApi(key) {
+      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
       return {
         auth: 'Basic ' + btoa(key),
-        host: _defaults2.default.HOST,
-        protocol: _defaults2.default.PROTOCOL,
+        host: opts.host || _defaults2.default.HOST,
+        protocol: opts.protocol || _defaults2.default.PROTOCOL,
         timeout: _defaults2.default.TIMEOUT
       };
     }
   }, {
     key: 'setToken',
     value: function setToken() {
+      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
       return {
         token: null,
-        host: _defaults2.default.HOST,
-        protocol: _defaults2.default.PROTOCOL,
+        host: opts.host || _defaults2.default.HOST,
+        protocol: opts.protocol || _defaults2.default.PROTOCOL,
         timeout: _defaults2.default.TIMEOUT,
-        token_host: _defaults2.default.TOKEN_HOST
+        token_host: opts.token_host || _defaults2.default.TOKEN_HOST
       };
     }
   }, {
