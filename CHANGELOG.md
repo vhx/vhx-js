@@ -1,3 +1,10 @@
+### 1.0.0-beta.3
+**2016-10-27**
+* add an `opts` object so we can override the defaults object.
+* adds custom URL handling for the `me` and `watchlist` endpoints
+* adds gulpfile.dev to `gitignore` for custom local builds
+* lots of refactoring
+
 ### 1.0.0-beta.2
 **2016-08-19**
 
