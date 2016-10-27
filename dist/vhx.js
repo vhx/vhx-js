@@ -138,38 +138,29 @@ var Resource = function () {
       var _this = this;
 
       _this.methods.forEach(function (item) {
-        var method = _this.getMethod(item),
-            type = _this.getType(_this.path),
-            params = {
+        var method = _this.getMethod(item);
+        var resource_type = _this.path || 'id';
+        var params = {
           http_method: 'get', // superagent reads 'get' not 'GET'
           client_method: method
         };
 
         if (method.match(/retrieve|items|files/i)) {
-          _this[method] = function (a, b, c) {
-            if (a[type]) {
-              if (_this.isCallbackFunction(b)) {
-                params.callback = b;
-              }
-              params.id = _this.parseHref(a[type]);
-              delete a[type];
-              params.options = a;
-            } else {
-              params.id = _this.parseHref(a);
-              if (_this.isCallbackFunction(b)) {
-                params.callback = b;
-              } else {
-                params.options = b;
-                params.callback = c;
-              }
+          _this[method] = function (parsed_params, callback) {
+            if (_this.isCallbackFunction(callback)) {
+              params.callback = callback;
             }
 
+            params.options = parsed_params;
+            params.url = this.parseUrl(parsed_params);
             params.scope = item.scope ? item.scope : null;
+
             _this.makeRequest(params);
           };
         } else {
           _this[method] = function (options, callback) {
             params.options = options;
+            params.url = this.parseUrl(options);
             params.callback = callback;
 
             _this.makeRequest(params);
@@ -178,19 +169,27 @@ var Resource = function () {
       });
     }
   }, {
-    key: 'getType',
-    value: function getType(resource) {
-      if (resource === 'collections') {
-        return 'collection';
-      }
-      if (resource === 'customers') {
-        return 'customer';
-      }
-      if (resource === 'videos') {
-        return 'video';
+    key: 'parseUrl',
+    value: function parseUrl(params) {
+      if (params && params.collection) {
+        return params.collection;
       }
 
-      return 'id';
+      if (params && params.product) {
+        if (!parseInt(params.product, 10)) {
+          return params.product;
+        }
+      }
+
+      if (params && this.path.match(/videos/)) {
+        return params;
+      }
+
+      if (params && this.path.match(/customers/)) {
+        return params;
+      }
+
+      return '' + this._api.protocol + this._api.host + '/' + this.path;
     }
   }, {
     key: 'getMethod',
@@ -204,52 +203,37 @@ var Resource = function () {
       }
     }
   }, {
-    key: 'parseHref',
-    value: function parseHref(href) {
-      var _this = this,
-          val = void 0;
-
-      if (parseInt(href, 10)) {
-        return href;
-      } else if (href.indexOf(_this._api.host) >= 0) {
-        if (href.substr(-1) === '/') {
-          href.substr(0, href.length - 1);
-        }
-        val = href.split('/');
-        return val[val.length - 1];
-      }
-    }
-  }, {
-    key: 'getToken',
-    value: function getToken(cb) {
-      var _this = this;
-      var path = '' + _this._api.protocol + window.location.host + '/tokens';
-
-      request.post(path).set('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content')).then(function (data) {
-        _this._api.token = data.body.token;
-        if (cb) cb();
-      }, function (data) {
-        console.log(data);
-      });
-    }
-  }, {
-    key: 'timeStamp',
-    value: function timeStamp() {
-      return new Date().getTime();
+    key: 'needsToken',
+    value: function needsToken() {
+      return new Date() > this._api.token_expiration;
     }
   }, {
     key: 'getParams',
-    value: function getParams(client_method, id, options, scope) {
-      var _this = this,
-          params = {};
-
-      if (id.match(/me|watching/)) {
-        params.url = '' + _this._api.protocol + _this._api.host + '/me/watching';
-      } else {
-        params.url = '' + _this._api.protocol + _this._api.host + '/' + _this.path;
-      }
+    value: function getParams(client_method, url, options, scope, type) {
+      var _this = this;
+      var params = {};
 
       params.timeout = _this._api.timeout;
+      params.qs = options || null;
+      params.method = client_method;
+
+      if (Object.prototype.toString.call(url) === '[object Object]') {
+        params.url = url[Object.keys(url)];
+      } else {
+        params.url = url;
+      }
+
+      if (params.url.match(/videos|customers/) && !params.url.match(/watching|watchlist/)) {
+        params.qs = '';
+      }
+
+      if (client_method === 'all') {
+        params.qs = '';
+      }
+
+      if (client_method === 'all' && options && parseInt(options.product, 10)) {
+        params.qs = options;
+      }
 
       if (_this._api.auth) {
         params.headers = {
@@ -257,46 +241,25 @@ var Resource = function () {
         };
       }
 
-      params.qs = options || null;
-
-      if (!client_method.match(/^list$|^all$/) && !id.match(/me|watching/)) {
-        params.url += '/' + id;
-      }
-
-      if (client_method.match(/items/i) && !id.match(/me|watching/)) {
-        params.url += '/items';
-      }
-
-      if (client_method.match(/files/i)) {
-        params.url += '/files';
-      }
-
-      if (scope) {
-        params.url += '/' + scope;
-      }
-
       return params;
     }
   }, {
     key: 'makeRequest',
     value: function makeRequest(args) {
-      var _this = this;
-      var params = _this.getParams(args.client_method, args.id || null, args.options, args.scope);
+      var params = this.getParams(args.client_method, args.url, args.options, args.scope, args.read_only);
 
-      if (_this.isCallbackFunction(args.options)) {
+      if (this.isCallbackFunction(args.options)) {
         args.callback = args.options;
       }
 
-      if (_this._api.token !== undefined) {
-        _this.getToken(function () {
-          params.headers = {
-            'Authorization': 'Bearer ' + _this._api.token
-          };
+      if (_typeof(this._api.token_host) !== undefined) {
+        params.headers = {
+          'Authorization': 'Bearer ' + this._api.token
+        };
 
-          _this.ajaxRequest(args, params);
-        });
+        this.ajaxRequest(args, params);
       } else {
-        _this.ajaxRequest(args, params);
+        this.ajaxRequest(args, params);
       }
     }
   }, {
@@ -548,6 +511,10 @@ var _browse = require('./resources/browse');
 
 var _browse2 = _interopRequireDefault(_browse);
 
+var _superagent = require('superagent');
+
+var _superagent2 = _interopRequireDefault(_superagent);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -556,7 +523,7 @@ var resources = {
   collections: _collections2.default,
   videos: _videos2.default,
   products: _products2.default,
-  customer: _customers2.default,
+  customers: _customers2.default,
   browse: _browse2.default
 };
 
@@ -570,7 +537,8 @@ var vhx = function () {
       return new vhx(key);
     }
 
-    _this.api = key ? _this.setApi(key, opts) : _this.setToken(opts);
+    _this.api = opts.token_host ? _this.setToken(key, opts) : _this.setApi(key, opts);
+
     _this.prepareResources();
   }
 
@@ -583,20 +551,22 @@ var vhx = function () {
         auth: 'Basic ' + btoa(key),
         host: opts.host || _defaults2.default.HOST,
         protocol: opts.protocol || _defaults2.default.PROTOCOL,
-        timeout: _defaults2.default.TIMEOUT
+        timeout: _defaults2.default.TIMEOUT,
+        token_expiration: null
       };
     }
   }, {
     key: 'setToken',
-    value: function setToken() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+    value: function setToken(key) {
+      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       return {
-        token: null,
+        token: key,
         host: opts.host || _defaults2.default.HOST,
         protocol: opts.protocol || _defaults2.default.PROTOCOL,
         timeout: _defaults2.default.TIMEOUT,
-        token_host: opts.token_host || _defaults2.default.TOKEN_HOST
+        token_host: opts.token_host || _defaults2.default.TOKEN_HOST,
+        token_expiration: TOKEN_EXPIRES_IN
       };
     }
   }, {
@@ -613,9 +583,10 @@ var vhx = function () {
   return vhx;
 }();
 
+module.exports = vhx;
 window.vhx = vhx;
 
-},{"./defaults":1,"./resources/browse":4,"./resources/collections":5,"./resources/customers":6,"./resources/products":7,"./resources/videos":8}],10:[function(require,module,exports){
+},{"./defaults":1,"./resources/browse":4,"./resources/collections":5,"./resources/customers":6,"./resources/products":7,"./resources/videos":8,"superagent":11}],10:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
