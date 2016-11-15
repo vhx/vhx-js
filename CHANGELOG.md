@@ -1,3 +1,7 @@
+### 1.0.0-beta.4
+**2016-11-15**
+* Update Babel presets and Babel core for IE10 fix
+
 ### 1.0.0-beta.3
 **2016-10-27**
 * add an `opts` object so we can override the defaults object.

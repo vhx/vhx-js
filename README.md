@@ -4,7 +4,7 @@ Currently not ready for production use, but in Pre-Release. Publishable VHX API 
 
 ### Installation
 
-`npm install vhxjs@beta.3`
+`npm install vhxjs@beta.4`
 
 ### Documentation
 
