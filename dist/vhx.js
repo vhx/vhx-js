@@ -111,7 +111,7 @@ module.exports = Paginate;
 },{}],3:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -364,7 +364,7 @@ var Browse = function (_Resource) {
   function Browse(api) {
     _classCallCheck(this, Browse);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Browse).call(this, api, 'browse', ['all', 'list']));
+    return _possibleConstructorReturn(this, (Browse.__proto__ || Object.getPrototypeOf(Browse)).call(this, api, 'browse', ['all', 'list']));
   }
 
   return Browse;
@@ -391,7 +391,7 @@ var Collection = function (_Resource) {
   function Collection(api) {
     _classCallCheck(this, Collection);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Collection).call(this, api, 'collections', ['all', 'list', 'items']));
+    return _possibleConstructorReturn(this, (Collection.__proto__ || Object.getPrototypeOf(Collection)).call(this, api, 'collections', ['all', 'list', 'items']));
   }
 
   return Collection;
@@ -418,7 +418,7 @@ var Customer = function (_Resource) {
   function Customer(api) {
     _classCallCheck(this, Customer);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Customer).call(this, api, 'customers', ['retrieve', 'all']));
+    return _possibleConstructorReturn(this, (Customer.__proto__ || Object.getPrototypeOf(Customer)).call(this, api, 'customers', ['retrieve', 'all']));
   }
 
   return Customer;
@@ -445,7 +445,7 @@ var Product = function (_Resource) {
   function Product(api) {
     _classCallCheck(this, Product);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Product).call(this, api, 'products', ['retrieve', 'all']));
+    return _possibleConstructorReturn(this, (Product.__proto__ || Object.getPrototypeOf(Product)).call(this, api, 'products', ['retrieve', 'all']));
   }
 
   return Product;
@@ -472,7 +472,7 @@ var Video = function (_Resource) {
   function Video(api) {
     _classCallCheck(this, Video);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Video).call(this, api, 'videos', ['all', 'retrieve', 'files']));
+    return _possibleConstructorReturn(this, (Video.__proto__ || Object.getPrototypeOf(Video)).call(this, api, 'videos', ['all', 'retrieve', 'files']));
   }
 
   return Video;
@@ -545,7 +545,7 @@ var vhx = function () {
   _createClass(vhx, [{
     key: 'setApi',
     value: function setApi(key) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
       return {
         auth: 'Basic ' + btoa(key),
@@ -558,7 +558,7 @@ var vhx = function () {
   }, {
     key: 'setToken',
     value: function setToken(key) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
       return {
         token: key,
@@ -824,9 +824,7 @@ function serialize(obj) {
   if (!isObject(obj)) return obj;
   var pairs = [];
   for (var key in obj) {
-    if (null != obj[key]) {
-      pushEncodedKeyValuePair(pairs, key, obj[key]);
-    }
+    pushEncodedKeyValuePair(pairs, key, obj[key]);
   }
   return pairs.join('&');
 }
@@ -841,18 +839,22 @@ function serialize(obj) {
  */
 
 function pushEncodedKeyValuePair(pairs, key, val) {
-  if (Array.isArray(val)) {
-    return val.forEach(function(v) {
-      pushEncodedKeyValuePair(pairs, key, v);
-    });
-  } else if (isObject(val)) {
-    for(var subkey in val) {
-      pushEncodedKeyValuePair(pairs, key + '[' + subkey + ']', val[subkey]);
+  if (val != null) {
+    if (Array.isArray(val)) {
+      val.forEach(function(v) {
+        pushEncodedKeyValuePair(pairs, key, v);
+      });
+    } else if (isObject(val)) {
+      for(var subkey in val) {
+        pushEncodedKeyValuePair(pairs, key + '[' + subkey + ']', val[subkey]);
+      }
+    } else {
+      pairs.push(encodeURIComponent(key)
+        + '=' + encodeURIComponent(val));
     }
-    return;
+  } else if (val === null) {
+    pairs.push(encodeURIComponent(key));
   }
-  pairs.push(encodeURIComponent(key)
-    + '=' + encodeURIComponent(val));
 }
 
 /**
@@ -1525,24 +1527,24 @@ Request.prototype.end = function(fn){
   };
 
   // progress
-  var handleProgress = function(e){
+  var handleProgress = function(direction, e) {
     if (e.total > 0) {
       e.percent = e.loaded / e.total * 100;
     }
-    e.direction = 'download';
+    e.direction = direction;
     self.emit('progress', e);
-  };
-  if (this.hasListeners('progress')) {
-    xhr.onprogress = handleProgress;
   }
-  try {
-    if (xhr.upload && this.hasListeners('progress')) {
-      xhr.upload.onprogress = handleProgress;
+  if (this.hasListeners('progress')) {
+    try {
+      xhr.onprogress = handleProgress.bind(null, 'download');
+      if (xhr.upload) {
+        xhr.upload.onprogress = handleProgress.bind(null, 'upload');
+      }
+    } catch(e) {
+      // Accessing xhr.upload fails in IE from a web worker, so just pretend it doesn't exist.
+      // Reported here:
+      // https://connect.microsoft.com/IE/feedback/details/837245/xmlhttprequest-upload-throws-invalid-argument-when-used-from-web-worker-context
     }
-  } catch(e) {
-    // Accessing xhr.upload fails in IE from a web worker, so just pretend it doesn't exist.
-    // Reported here:
-    // https://connect.microsoft.com/IE/feedback/details/837245/xmlhttprequest-upload-throws-invalid-argument-when-used-from-web-worker-context
   }
 
   // timeout
@@ -1822,6 +1824,10 @@ exports.then = function then(resolve, reject) {
   return this._fullfilledPromise.then(resolve, reject);
 }
 
+exports.catch = function(cb) {
+  return this.then(undefined, cb);
+};
+
 /**
  * Allow for extension
  */
@@ -1911,21 +1917,42 @@ exports.unset = function(field){
 };
 
 /**
- * Write the field `name` and `val` for "multipart/form-data"
- * request bodies.
+ * Write the field `name` and `val`, or multiple fields with one object
+ * for "multipart/form-data" request bodies.
  *
  * ``` js
  * request.post('/upload')
  *   .field('foo', 'bar')
  *   .end(callback);
+ *
+ * request.post('/upload')
+ *   .field({ foo: 'bar', baz: 'qux' })
+ *   .end(callback);
  * ```
  *
- * @param {String} name
+ * @param {String|Object} name
  * @param {String|Blob|File|Buffer|fs.ReadStream} val
  * @return {Request} for chaining
  * @api public
  */
 exports.field = function(name, val) {
+
+  // name should be either a string or an object.
+  if (null === name ||  undefined === name) {
+    throw new Error('.field(name, val) name can not be empty');
+  }
+
+  if (isObject(name)) {
+    for (var key in name) {
+      this.field(key, name[key]);
+    }
+    return this;
+  }
+
+  // val should be defined now
+  if (null === val || undefined === val) {
+    throw new Error('.field(name, val) val can not be empty');
+  }
   this._getFormData().append(name, val);
   return this;
 };
@@ -2128,12 +2155,15 @@ module.exports = request;
 },{}],15:[function(require,module,exports){
 module.exports={
   "name": "vhxjs",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0-beta.3",
   "description": "VHX Javascript API Client",
   "main": "vhx.js",
   "author": "VHX",
   "homepage": "https://github.com/vhx/vhx-node",
-  "contributors": ["David Gonzalez <david@vhx.tv> ", "Scott Robertson <scott@vhx.tv>"],
+  "contributors": [
+    "David Gonzalez <david@vhx.tv> ",
+    "Scott Robertson <scott@vhx.tv>"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -2142,7 +2172,8 @@ module.exports={
   "bugs:": "https://github.com/vhx/vhx-js/issues",
   "devDependencies": {
     "babel-cli": "^6.11.4",
-    "babel-preset-es2015": "^6.9.0",
+    "babel-core": "^6.18.2",
+    "babel-preset-es2015": "6.18.0",
     "babelify": "^7.3.0",
     "browserify": "^13.1.0",
     "gulp": "^3.9.1",
