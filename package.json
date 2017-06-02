@@ -9,6 +9,9 @@
     "David Gonzalez <david@vhx.tv> ",
     "Scott Robertson <scott@vhx.tv>"
   ],
+  "scripts": {
+    "build": "rollup -c rollup.config.js"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -27,6 +30,10 @@
     "gulp-livereload": "^3.8.1",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-uglify": "^1.5.4",
+    "rollup": "^0.41.6",
+    "rollup-plugin-buble": "^0.15.0",
+    "rollup-plugin-commonjs": "^8.0.2",
+    "rollup-plugin-node-resolve": "^3.0.0",
     "superagent": "^2.1.0",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
