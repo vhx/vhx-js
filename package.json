@@ -15,8 +15,9 @@
     "Scott Robertson <scott@vhx.tv>"
   ],
   "scripts": {
-    "node": "NODE_BUILD=true rollup -c -w rollup.config.js",
-    "build": "NODE_ENV=production rollup -c rollup.config.js",
+    "node": "NODE_BUILD=true rollup -c rollup.config.js",
+    "client": "rollup -c rollup.config.js",
+    "production": "NODE_ENV=production npm run node; NODE_ENV=production npm run client;",
     "dev": "rollup -c -w rollup.config.js"
   },
   "license": "MIT",
