@@ -1885,12 +1885,6 @@ var Analytics = (function (Resource$$1) {
   return Analytics;
 }(Resource));
 
-if (typeof btoa === undefined) {
-  global.btoa = function (str) {
-    return new Buffer(str).toString('base64');
-  };
-}
-
 var resources = {
   products    : Product,
   browse      : Browse,
@@ -1899,6 +1893,12 @@ var resources = {
   customers   : Customer,
   analytics   : Analytics
 };
+
+if (typeof btoa === 'undefined') {
+  global.btoa = function(str) {
+    return new Buffer(str).toString('base64');
+  };
+}
 
 var VhxApi = function VhxApi(key, opts) {
   if ( opts === void 0 ) opts={};
@@ -1944,4 +1944,4 @@ VhxApi.prototype.prepareResources = function prepareResources () {
 return VhxApi;
 
 })));
-//# sourceMappingURL=vhx.js.map
+//# sourceMappingURL=client.js.map

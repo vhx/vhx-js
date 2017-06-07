@@ -5,18 +5,21 @@ import uglify from 'rollup-plugin-uglify';
 import conditional from 'rollup-plugin-conditional';
 
 const isProduction = process.env.NODE_ENV === 'production';
+const nodeBuild = process.env.NODE_BUILD;
 
 export default {
   entry: './lib/vhx.js',
   format: 'umd',
-  dest: './dist/vhx.js',
+  dest: nodeBuild ? './dist/index.js' : './dist/client.js',
   moduleName: 'VhxApi',
   sourceMap: true,
   plugins: [
-    nodeResolve({
-      browser: true,
-      jsnext: true
-    }),
+    conditional(!nodeBuild, [
+      nodeResolve({
+        browser: true,
+        jsnext: true
+      }),
+    ]),
     commonjs(),
     buble(),
     conditional(isProduction, [
