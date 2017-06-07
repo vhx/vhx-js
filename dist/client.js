@@ -1710,11 +1710,11 @@ Resource.prototype.init = function init () {
 };
 
 Resource.prototype.getParams = function getParams (client_method, url, options, scope, type) {
-  var params = {};
-
-  params.timeout = this._api.timeout;
-  params.method= client_method;
-  params.url   = url;
+  var params = {
+    timeout : this._api.timeout,
+    method: client_method,
+    url   : url,
+  };
 
   if (isObject$2(options)) {
     params.qs = options || null;
@@ -1754,10 +1754,13 @@ Resource.prototype.ajaxRequest = function ajaxRequest (args, params) {
     .set('Content-Type', 'application/json')
     .query(params.qs)
     .end(function (err, response) {
-      if (err && err.code === 'ETIMEDOUT') {
+      if (err) {
         this$1.errorHandler({
           status: 408,
-          body: '{"message": "The request timed out.","documentation_url": "http://dev.vhx.tv/docs/api"}',
+          body: JSON.stringify({
+            message: err,
+            documentation_url: "http://dev.vhx.tv/docs/api",
+          }),
           callback: (args.callback || '')
         });
       }
@@ -1769,12 +1772,6 @@ Resource.prototype.ajaxRequest = function ajaxRequest (args, params) {
           options: args.options,
           object: this$1.path,
           method: args.client_method
-        });
-      } else {
-        this$1.errorHandler({
-          status: 408,
-          body: '{"message": "The request timed out.","documentation_url": "http://dev.vhx.tv/docs/api"}',
-          callback: (args.callback || '')
         });
       }
     });
@@ -1796,6 +1793,7 @@ Resource.prototype.successHandler = function successHandler (args) {
 };
 
 Resource.prototype.errorHandler = function errorHandler (args) {
+  // TODO: consider better error messaging
   var error = JSON.parse(args.body);
   var error_types = {
     400: 'VHXInvalidRequestError',
