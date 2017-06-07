@@ -1,2 +1,375 @@
-!function(t,o){"object"==typeof exports&&"undefined"!=typeof module?module.exports=o(require("superagent")):"function"==typeof define&&define.amd?define(["superagent"],o):t.VhxApi=o(t.request)}(this,function(t){"use strict";function o(t){return r(t)&&t.method?t.method:t}function e(t){return isNaN(parseInt(t,10))}function r(t){var o=typeof t;return"function"===o||"object"===o&&!!t}function n(t){return!!(t&&t.constructor&&t.call&&t.apply)}function i(t,o,e){return"products"===o.path?p(t,o):"videos"===o.path?c(t,o,e):"collections"===o.path?c(t,o,e):"customers"===o.path?c(t,o,e):s(o)}t="default"in t?t.default:t;var a={HOST:"api.vhx.tv",PROTOCOL:"https://",TIMEOUT:"30000"},c=function(t,o,r){return r&&r.scope?e(t)?t+"/"+r.scope:""+o._api.protocol+o._api.host+"/"+o.path+"/"+t+"/"+r.scope:e(t)&&!n(t)?t:n(t)?s(o):""+o._api.protocol+o._api.host+"/"+o.path+"/"+t},s=function(t){return""+t._api.protocol+t._api.host+"/"+t.path},p=function(t,o){return e(t)&&!n(t)?t:n(t)?s(o):""+o._api.protocol+o._api.host+"/"+o.path+"/"+t},u=function(t,o,e,r){this._api=t,this.methods=e,this.path=o,this.init()};u.prototype.init=function(){var t=this;this.methods.forEach(function(e){var r=o(e),a={http_method:"get",client_method:r};r.match(/files|items|watching|watchlist/)&&(a.scope=e),t[r]=function(o,e){a.url=i(o,t,a),n(o)?a.callback=o:a.callback=e,t.createRequestParams(a)}})},u.prototype.getParams=function(t,o,e,n,i){var a={timeout:this._api.timeout,method:t,url:o};return r(e)&&(a.qs=e||null),this._api.auth&&(a.headers={Authorization:this._api.auth}),this._api.internal&&(a.headers={Authorization:"Bearer "+this._api.token}),a},u.prototype.createRequestParams=function(t){var o=this.getParams(t.client_method,t.url,t.options,t.scope,t.read_only);n(t.options)&&(t.callback=t.options),this.ajaxRequest(t,o)},u.prototype.ajaxRequest=function(o,e){var r=this;t[o.http_method](e.url).withCredentials().set(e.headers||{}).set("Content-Type","application/json").query(e.qs).end(function(t,e){t?r.errorHandler({status:e.statusCode,body:JSON.stringify({message:t,documentation_url:"http://dev.vhx.tv/docs/api"}),callback:o.callback||""}):r.successHandler({body:e.body||null,callback:o.callback,options:o.options,object:r.path,method:o.client_method})})},u.prototype.successHandler=function(t){var o=t.body;o.object=t.object,t.callback&&t.callback(!1,o)},u.prototype.errorHandler=function(t){var o=JSON.parse(t.body),e={400:"VHXInvalidRequestError",401:"VHXAuthenticationError",404:"VHXResourceNotFound",408:"VHXConnectionError",500:"VHXAPIError"};o.status=t.status,o.type=e[o.status],t.callback&&t.callback(o,null)};var l=function(t){function o(o){t.call(this,o,"collections",["all","retrieve","items"])}return t&&(o.__proto__=t),o.prototype=Object.create(t&&t.prototype),o.prototype.constructor=o,o}(u),h=function(t){function o(o){t.call(this,o,"videos",["all","retrieve","files"])}return t&&(o.__proto__=t),o.prototype=Object.create(t&&t.prototype),o.prototype.constructor=o,o}(u),f=function(t){function o(o){t.call(this,o,"customers",["retrieve","all","watching","watchlist"])}return t&&(o.__proto__=t),o.prototype=Object.create(t&&t.prototype),o.prototype.constructor=o,o}(u),d=function(t){function o(o){t.call(this,o,"browse",["list"])}return t&&(o.__proto__=t),o.prototype=Object.create(t&&t.prototype),o.prototype.constructor=o,o}(u),_={products:function(t){function o(o){t.call(this,o,"products",["retrieve","all"])}return t&&(o.__proto__=t),o.prototype=Object.create(t&&t.prototype),o.prototype.constructor=o,o}(u),browse:d,videos:h,collections:l,customers:f,analytics:function(t){function o(o){t.call(this,o,"analytics",["retrieve"])}return t&&(o.__proto__=t),o.prototype=Object.create(t&&t.prototype),o.prototype.constructor=o,o}(u)};"undefined"==typeof btoa&&(global.btoa=function(t){return new Buffer(t).toString("base64")});var y=function(t,o){void 0===o&&(o={}),this.api=o.internal?this.setToken(t,o):this.setApi(t,o),this.prepareResources()};return y.prototype.setApi=function(t,o){return void 0===o&&(o={}),{auth:"Basic "+btoa(t),host:o.host||a.HOST,protocol:o.protocol||a.PROTOCOL,timeout:a.TIMEOUT,token_expiration:null}},y.prototype.setToken=function(t,o){return void 0===o&&(o={}),{token:t,host:o.host||a.HOST,protocol:o.protocol||a.PROTOCOL,timeout:a.TIMEOUT,token_expiration:TOKEN_EXPIRES_IN,internal:!0}},y.prototype.prepareResources=function(){var t=this;for(var o in _)t[o[0].toLowerCase()+o.substring(1)]=new _[o](t.api)},y});
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('superagent')) :
+	typeof define === 'function' && define.amd ? define(['superagent'], factory) :
+	(global.VhxApi = factory(global.request));
+}(this, (function (request) { 'use strict';
+
+request = 'default' in request ? request['default'] : request;
+
+var ApiConfig = {
+  HOST: 'api.vhx.tv',
+  PROTOCOL: 'https://',
+  TIMEOUT: '30000'
+};
+
+function getMethod(params) {
+  return isObject(params) && params.method ?
+          params.method :
+          params;
+}
+
+function isHref(params) {
+  return isNaN(parseInt(params, 10));
+}
+
+function isObject(obj) {
+  var type = typeof obj;
+  return type === 'function' || type === 'object' && !!obj;
+}
+
+function isFunction(obj) {
+  return !!(obj && obj.constructor && obj.call && obj.apply);
+}
+
+function generateUrl(params, resource, options) {
+  if (resource.path === 'products') {
+    return createUrlWithStandardEndpoints(params, resource);
+  }
+
+  if (resource.path === 'videos') {
+    return createUrlWithCustomEndpoints(params, resource, options);
+  }
+
+  if (resource.path === 'collections') {
+    return createUrlWithCustomEndpoints(params, resource, options);
+  }
+
+  if (resource.path === 'customers') {
+    return createUrlWithCustomEndpoints(params, resource, options);
+  }
+
+  if (resource.path === 'browse') {
+    return handleBrowseEndpoint(params, resource);
+  }
+
+  return returnDefaultHref(resource);
+}
+
+var handleBrowseEndpoint = function (params, resource) {
+
+  if (isObject(params)) {
+    return ("" + (resource._api.protocol) + (resource._api.host) + "/" + (resource.path));
+  }
+
+  return ("" + (resource._api.protocol) + (resource._api.host) + "/" + (resource.path) + "?product=" + params);
+};
+
+var createUrlWithCustomEndpoints = function (params, resource, options) {
+  if (options && options.scope) {
+    if (isHref(params)) {
+      return (params + "/" + (options.scope));
+    }
+
+    return ("" + (resource._api.protocol) + (resource._api.host) + "/" + (resource.path) + "/" + params + "/" + (options.scope));
+  }
+
+  if (isHref(params) && !isFunction(params)) {
+    return params;
+  }
+
+  if (!isFunction(params)) {
+    return ("" + (resource._api.protocol) + (resource._api.host) + "/" + (resource.path) + "/" + params);
+  }
+
+  return returnDefaultHref(resource);
+};
+
+var returnDefaultHref = function (resource) {
+  return ("" + (resource._api.protocol) + (resource._api.host) + "/" + (resource.path));
+};
+
+var createUrlWithStandardEndpoints = function (params, resource) {
+  if (isHref(params) && !isFunction(params)) {
+    return params;
+  }
+
+  if (!isFunction(params)) {
+    return ("" + (resource._api.protocol) + (resource._api.host) + "/" + (resource.path) + "/" + params);
+  }
+
+  return returnDefaultHref(resource);
+};
+
+var Resource = function Resource(api, path, methods, isToken) {
+  this._api  = api;
+  this.methods = methods;
+  this.path  = path;
+
+  this.init();
+};
+
+Resource.prototype.init = function init () {
+    var this$1 = this;
+
+  this.methods.forEach(function (item) {
+    var method = getMethod(item);
+    var params = {
+      http_method: 'get', // superagent reads 'get' not 'GET'
+      client_method: method
+    };
+
+    if (method.match(/files|items|watching|watchlist/)) {
+      params.scope = item;
+    }
+
+    this$1[method] = function (options, callback) {
+      params.url = generateUrl(options, this$1, params);
+      params.options = options;
+
+      if (isFunction(options)) {
+       params.callback = options;
+      } else {
+        params.callback = callback;
+      }
+
+      this$1.createRequestParams(params);
+    };
+  });
+};
+
+Resource.prototype.getParams = function getParams (client_method, url, options, scope, type) {
+  var params = {
+    timeout : this._api.timeout,
+    method: client_method,
+    url   : url,
+  };
+
+  if (isObject(options)) {
+    params.qs = options || null;
+  }
+
+  if (this._api.auth) {
+    params.headers = {
+      'Authorization': this._api.auth
+    };
+  }
+
+  if (this._api.internal) {
+    params.headers = {
+      'Authorization': 'Bearer ' + this._api.token
+    };
+  }
+
+  return params;
+};
+
+Resource.prototype.createRequestParams = function createRequestParams (args) {
+  var params = this.getParams(args.client_method, args.url, args.options, args.scope, args.read_only);
+
+  console.log(params);
+
+  if (isFunction(args.options)) {
+    args.callback = args.options;
+  }
+
+  this.ajaxRequest(args, params);
+};
+
+Resource.prototype.ajaxRequest = function ajaxRequest (args, params) {
+    var this$1 = this;
+
+  request[args.http_method](params.url)
+    .withCredentials()
+    .set(params.headers || {})
+    .set('Content-Type', 'application/json')
+    .query(params.qs)
+    .end(function (err, response) {
+      if (err) {
+        this$1.errorHandler({
+          status: response.statusCode,
+          body: JSON.stringify({
+            message: err,
+            documentation_url: "http://dev.vhx.tv/docs/api",
+          }),
+          callback: (args.callback || '')
+        });
+
+        return;
+      }
+
+      this$1.successHandler({
+        body: response.body || null,
+        callback: args.callback,
+        options: args.options,
+        object: this$1.path,
+        method: args.client_method
+      });
+    });
+};
+
+Resource.prototype.successHandler = function successHandler (args) {
+  var response = args.body;
+
+  // TODO: rebuild built-in pagination methods
+  // if (args.body.count && args.body.count < args.body.total) {
+  // response = new paginate(this, args).get();
+  // }
+
+  response.object = args.object;
+
+  if (args.callback) {
+    args.callback(false, response);
+  }
+};
+
+Resource.prototype.errorHandler = function errorHandler (args) {
+  // TODO: consider better error messaging
+  var error = JSON.parse(args.body);
+  var error_types = {
+    400: 'VHXInvalidRequestError',
+    401: 'VHXAuthenticationError',
+    404: 'VHXResourceNotFound',
+    408: 'VHXConnectionError',
+    500: 'VHXAPIError'
+  };
+
+  error.status = args.status;
+  error.type = error_types[error.status];
+
+  if (args.callback) {
+    args.callback(error, null);
+  }
+};
+
+var Collection = (function (Resource$$1) {
+  function Collection(api) {
+    Resource$$1.call(this, api, 'collections', ['all', 'retrieve', 'items']);
+  }
+
+  if ( Resource$$1 ) Collection.__proto__ = Resource$$1;
+  Collection.prototype = Object.create( Resource$$1 && Resource$$1.prototype );
+  Collection.prototype.constructor = Collection;
+
+  return Collection;
+}(Resource));
+
+var Video = (function (Resource$$1) {
+  function Video(api) {
+    Resource$$1.call(this, api, 'videos', ['all', 'retrieve', 'files']);
+  }
+
+  if ( Resource$$1 ) Video.__proto__ = Resource$$1;
+  Video.prototype = Object.create( Resource$$1 && Resource$$1.prototype );
+  Video.prototype.constructor = Video;
+
+  return Video;
+}(Resource));
+
+var Customer = (function (Resource$$1) {
+  function Customer(api) {
+    Resource$$1.call(this, api, 'customers', ['retrieve', 'all', 'watching', 'watchlist']);
+  }
+
+  if ( Resource$$1 ) Customer.__proto__ = Resource$$1;
+  Customer.prototype = Object.create( Resource$$1 && Resource$$1.prototype );
+  Customer.prototype.constructor = Customer;
+
+  return Customer;
+}(Resource));
+
+var Browse = (function (Resource$$1) {
+  function Browse(api) {
+    Resource$$1.call(this, api, 'browse', ['list']);
+  }
+
+  if ( Resource$$1 ) Browse.__proto__ = Resource$$1;
+  Browse.prototype = Object.create( Resource$$1 && Resource$$1.prototype );
+  Browse.prototype.constructor = Browse;
+
+  return Browse;
+}(Resource));
+
+var Product = (function (Resource$$1) {
+  function Product(api) {
+    Resource$$1.call(this, api, 'products', ['retrieve', 'all']);
+  }
+
+  if ( Resource$$1 ) Product.__proto__ = Resource$$1;
+  Product.prototype = Object.create( Resource$$1 && Resource$$1.prototype );
+  Product.prototype.constructor = Product;
+
+  return Product;
+}(Resource));
+
+var Analytics = (function (Resource$$1) {
+  function Analytics(api) {
+    Resource$$1.call(this, api, 'analytics', ['retrieve']);
+  }
+
+  if ( Resource$$1 ) Analytics.__proto__ = Resource$$1;
+  Analytics.prototype = Object.create( Resource$$1 && Resource$$1.prototype );
+  Analytics.prototype.constructor = Analytics;
+
+  return Analytics;
+}(Resource));
+
+var resources = {
+  products    : Product,
+  browse      : Browse,
+  videos      : Video,
+  collections : Collection,
+  customers   : Customer,
+  analytics   : Analytics
+};
+
+if (typeof btoa === 'undefined') {
+  global.btoa = function(str) {
+    return new Buffer(str).toString('base64');
+  };
+}
+
+var VhxApi = function VhxApi(key, opts) {
+  if ( opts === void 0 ) opts={};
+
+  this.api = opts.internal ? this.setToken(key, opts) : this.setApi(key, opts);
+
+  this.prepareResources();
+};
+
+VhxApi.prototype.setApi = function setApi (key, opts) {
+    if ( opts === void 0 ) opts = {};
+
+  return {
+    auth: 'Basic ' + btoa(key),
+    host: opts.host || ApiConfig.HOST,
+    protocol: opts.protocol || ApiConfig.PROTOCOL,
+    timeout: ApiConfig.TIMEOUT,
+    token_expiration: null
+  };
+};
+
+VhxApi.prototype.setToken = function setToken (key, opts) {
+    if ( opts === void 0 ) opts = {};
+
+  return {
+    token: key,
+    host: opts.host || ApiConfig.HOST,
+    protocol: opts.protocol || ApiConfig.PROTOCOL,
+    timeout: ApiConfig.TIMEOUT,
+    token_expiration: TOKEN_EXPIRES_IN,
+    internal: true
+  };
+};
+
+VhxApi.prototype.prepareResources = function prepareResources () {
+    var this$1 = this;
+
+  for (var name in resources) {
+    this$1[name[0].toLowerCase() + name.substring(1)] = new resources[name](this$1.api);
+  }
+};
+
+return VhxApi;
+
+})));
 //# sourceMappingURL=index.js.map
