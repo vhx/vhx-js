@@ -1659,11 +1659,11 @@ var createUrlWithCustomEndpoints = function (params, resource, options) {
     return ("" + (resource._api.protocol) + (resource._api.host) + "/" + (resource.path) + "/" + params + "/" + (options.scope));
   }
 
-  if (isHref(params) && !isFunction(params)) {
+  if (params && isHref(params) && !isFunction(params)) {
     return params;
   }
 
-  if (!isFunction(params)) {
+  if (params && !isFunction(params)) {
     return ("" + (resource._api.protocol) + (resource._api.host) + "/" + (resource.path) + "/" + params);
   }
 
@@ -1718,7 +1718,7 @@ Resource.prototype.init = function init () {
         params.callback = callback;
       }
 
-      this$1.createRequestParams(params);
+      return this$1.createRequestParams(params);
     };
   });
 };
@@ -1752,45 +1752,45 @@ Resource.prototype.getParams = function getParams (client_method, url, options, 
 Resource.prototype.createRequestParams = function createRequestParams (args) {
   var params = this.getParams(args.client_method, args.url, args.options, args.scope, args.read_only);
 
-  console.log(params);
-
   if (isFunction(args.options)) {
     args.callback = args.options;
   }
 
-  this.ajaxRequest(args, params);
+  return this.ajaxRequest(args, params);
+};
+
+Resource.prototype.parseJSON = function parseJSON (response) {
+  return new Promise(function (resolve) { return response
+    .then(function (json) { return resolve({
+      status: response.status,
+      ok: response.ok,
+      json: json,
+    }); }); });
 };
 
 Resource.prototype.ajaxRequest = function ajaxRequest (args, params) {
-    var this$1 = this;
+  var promise = new Promise(function (resolve, reject) {
+    var req = function () {
+      client[args.http_method](params.url)
+        .withCredentials()
+        .set(params.headers || {})
+        .set('Content-Type', 'application/json')
+        .query(params.qs)
+        .then(function (response) { return response; })
+        .then(function (response) {
+          if (response.ok) {
+            resolve(response.body);
+          }
 
-  client[args.http_method](params.url)
-    .withCredentials()
-    .set(params.headers || {})
-    .set('Content-Type', 'application/json')
-    .query(params.qs)
-    .end(function (err, response) {
-      if (err) {
-        this$1.errorHandler({
-          status: response.statusCode,
-          body: JSON.stringify({
-            message: err,
-            documentation_url: "http://dev.vhx.tv/docs/api",
-          }),
-          callback: (args.callback || '')
-        });
+          reject(response);
+        })
+        .catch(function (err) { return console.log(err); });
+    };
 
-        return;
-      }
+    return req();
+  });
 
-      this$1.successHandler({
-        body: response.body || null,
-        callback: args.callback,
-        options: args.options,
-        object: this$1.path,
-        method: args.client_method
-      });
-    });
+  return promise;
 };
 
 Resource.prototype.successHandler = function successHandler (args) {
