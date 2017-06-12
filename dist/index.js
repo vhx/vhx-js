@@ -173,15 +173,6 @@ Resource.prototype.createRequestParams = function createRequestParams (args) {
   return this.ajaxRequest(args, params);
 };
 
-Resource.prototype.parseJSON = function parseJSON (response) {
-  return new Promise(function (resolve) { return response
-    .then(function (json) { return resolve({
-      status: response.status,
-      ok: response.ok,
-      json: json,
-    }); }); });
-};
-
 Resource.prototype.ajaxRequest = function ajaxRequest (args, params) {
   var promise = new Promise(function (resolve, reject) {
     var req = function () {
@@ -190,15 +181,19 @@ Resource.prototype.ajaxRequest = function ajaxRequest (args, params) {
         .set(params.headers || {})
         .set('Content-Type', 'application/json')
         .query(params.qs)
-        .then(function (response) { return response; })
         .then(function (response) {
+          // TODO: rebuild built-in pagination methods
+          // if (args.body.count && args.body.count < args.body.total) {
+          // response = new paginate(this, args).get();
+          // }
+
           if (response.ok) {
             resolve(response.body);
           }
 
           reject(response);
         })
-        .catch(function (err) { return console.log(err); });
+        .catch(function (err) { return reject(err); });
     };
 
     return req();
@@ -207,24 +202,7 @@ Resource.prototype.ajaxRequest = function ajaxRequest (args, params) {
   return promise;
 };
 
-Resource.prototype.successHandler = function successHandler (args) {
-  var response = args.body;
-
-  // TODO: rebuild built-in pagination methods
-  // if (args.body.count && args.body.count < args.body.total) {
-  // response = new paginate(this, args).get();
-  // }
-
-  response.object = args.object;
-
-  if (args.callback) {
-    args.callback(false, response);
-  }
-};
-
-Resource.prototype.errorHandler = function errorHandler (args) {
-  // TODO: consider better error messaging
-  var error = JSON.parse(args.body);
+Resource.prototype.errorHandler = function errorHandler (err) {
   var error_types = {
     400: 'VHXInvalidRequestError',
     401: 'VHXAuthenticationError',
@@ -233,11 +211,10 @@ Resource.prototype.errorHandler = function errorHandler (args) {
     500: 'VHXAPIError'
   };
 
-  error.status = args.status;
-  error.type = error_types[error.status];
-
-  if (args.callback) {
-    args.callback(error, null);
+  return {
+    status: err.response.status,
+    message: err.response.error,
+    docs: "http://dev.vhx.tv/docs/api/"
   }
 };
 
