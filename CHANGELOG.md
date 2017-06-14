@@ -1,5 +1,9 @@
+### 1.1.1
+**2017-06-14**
+* Update tags
+
 ### 1.1.0
-**2016-11-15**
+**2017-06-14**
 * Use promises instead of callbacks
 * add analytics, browse, and customers-> watching/watchlist endpoints
 * generates both browser (client.js) and node (index.js) based builds
