@@ -33,7 +33,7 @@ function isFunction(obj) {
 
 function generateUrl(params, resource, options) {
   if (resource.path === 'products') {
-    return createUrlWithCustomEndpoints(params, resource);
+    return createUrlWithCustomEndpoints(params, resource, options);
   }
 
   if (resource.path === 'videos') {
@@ -66,18 +66,18 @@ var handleBrowseEndpoint = function (params, resource) {
 
 var createUrlWithCustomEndpoints = function (params, resource, options) {
   if (options && options.scope) {
-    if (isHref(params)) {
+    if (params && isHref(params)) {
       return (params + "/" + (options.scope));
     }
 
     return ("" + (resource._api.protocol) + (resource._api.host) + "/" + (resource.path) + "/" + params + "/" + (options.scope));
   }
 
-  if (isHref(params) && !isFunction(params)) {
+  if (params && isHref(params) && !isFunction(params) && !isObject(params)) {
     return params;
   }
 
-  if (params && !isFunction(params)) {
+  if (params && !isFunction(params) && !isObject(params)) {
     return ("" + (resource._api.protocol) + (resource._api.host) + "/" + (resource.path) + "/" + params);
   }
 
@@ -110,14 +110,28 @@ Resource.prototype.init = function init () {
       params.scope = item;
     }
 
-    this$1[method] = function (options, callback) {
-      params.url = generateUrl(options, this$1, params);
-      params.options = options;
+    this$1[method] = function (identifier, options) {
+      params.url = generateUrl(identifier, this$1, params);
 
-      if (isFunction(options)) {
-       params.callback = options;
+      /**
+       * The param types being passed into the client library can vary based on the endpoint.
+       * For example, the products/all endpoint, can take an optional object as it's first param:
+       * vhx.products.all({per_page: 10})
+       *
+       * But we also want to make sure we can handle other product endpoints such as:
+       * vhx.products.retrieve(14440);
+       *
+       * or
+       *
+       * vhx.products.retrieve(14440, { per_page: 10 });
+       *
+       * We need to check if the initial param is an object or not, so that we can place
+       * it into the correct params variable.
+      **/
+      if (isObject(identifier)) {
+        params.options = identifier;
       } else {
-        params.callback = callback;
+        params.options = options;
       }
 
       return this$1.createRequestParams(params);
@@ -154,10 +168,6 @@ Resource.prototype.getParams = function getParams (client_method, url, options, 
 Resource.prototype.createRequestParams = function createRequestParams (args) {
   var params = this.getParams(args.client_method, args.url, args.options, args.scope, args.read_only);
 
-  if (isFunction(args.options)) {
-    args.callback = args.options;
-  }
-
   return this.ajaxRequest(args, params);
 };
 
@@ -170,6 +180,7 @@ Resource.prototype.ajaxRequest = function ajaxRequest (args, params) {
         .set('Content-Type', 'application/json')
         .query(params.qs)
         .then(function (response) {
+
           // TODO: rebuild built-in pagination methods
           // if (args.body.count && args.body.count < args.body.total) {
           // response = new paginate(this, args).get();
@@ -188,22 +199,6 @@ Resource.prototype.ajaxRequest = function ajaxRequest (args, params) {
   });
 
   return promise;
-};
-
-Resource.prototype.errorHandler = function errorHandler (err) {
-  var error_types = {
-    400: 'VHXInvalidRequestError',
-    401: 'VHXAuthenticationError',
-    404: 'VHXResourceNotFound',
-    408: 'VHXConnectionError',
-    500: 'VHXAPIError'
-  };
-
-  return {
-    status: err.response.status,
-    message: err.response.error,
-    docs: "http://dev.vhx.tv/docs/api/"
-  }
 };
 
 var Collection = (function (Resource$$1) {
