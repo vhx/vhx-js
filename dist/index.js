@@ -31,6 +31,22 @@ function isFunction(obj) {
   return obj && !!(obj && obj.constructor && obj.call && obj.apply);
 }
 
+function setHTTPMethod(action) {
+  if (action === 'update' || action === 'addProduct') {
+    return 'put';
+  }
+
+  if (action === 'create') {
+    return 'post';
+  }
+
+  if (action === 'delete' || action === 'removeProduct') {
+    return 'delete';
+  }
+
+  return 'get';
+}
+
 function generateUrl(params, resource, options) {
   if (resource.path === 'products') {
     return createUrlWithCustomEndpoints(params, resource, options);
@@ -78,6 +94,9 @@ var createUrlWithCustomEndpoints = function (params, resource, options) {
   }
 
   if (params && !isFunction(params) && !isObject(params)) {
+    if (options.client_method === 'addProduct') {
+      return ("" + (resource._api.protocol) + (resource._api.host) + "/" + (resource.path) + "/" + params + "/products");
+    }
     return ("" + (resource._api.protocol) + (resource._api.host) + "/" + (resource.path) + "/" + params);
   }
 
@@ -102,7 +121,7 @@ Resource.prototype.init = function init () {
   this.methods.forEach(function (item) {
     var method = getMethod(item);
     var params = {
-      http_method: 'get', // superagent reads 'get' not 'GET'
+      http_method: setHTTPMethod(item), // superagent reads 'get' not 'GET'
       client_method: method
     };
 
@@ -111,7 +130,7 @@ Resource.prototype.init = function init () {
     }
 
     this$1[method] = function (identifier, options) {
-      params.url = generateUrl(identifier, this$1, params);
+      params.url = generateUrl(identifier, this$1, params, options);
 
       /**
        * The param types being passed into the client library can vary based on the endpoint.
@@ -203,7 +222,9 @@ Resource.prototype.ajaxRequest = function ajaxRequest (args, params) {
 
 var Collection = (function (Resource$$1) {
   function Collection(api) {
-    Resource$$1.call(this, api, 'collections', ['all', 'retrieve', 'items']);
+    {
+      Resource$$1.call(this, api, 'collections', ['create', 'update', 'all', 'retrieve', 'items']);
+    }
   }
 
   if ( Resource$$1 ) Collection.__proto__ = Resource$$1;
@@ -215,7 +236,9 @@ var Collection = (function (Resource$$1) {
 
 var Video = (function (Resource$$1) {
   function Video(api) {
-    Resource$$1.call(this, api, 'videos', ['all', 'retrieve', 'files']);
+    {
+      Resource$$1.call(this, api, 'videos', ['all', 'retrieve', 'files', 'create', 'update']);
+    }
   }
 
   if ( Resource$$1 ) Video.__proto__ = Resource$$1;
@@ -227,7 +250,15 @@ var Video = (function (Resource$$1) {
 
 var Customer = (function (Resource$$1) {
   function Customer(api) {
-    Resource$$1.call(this, api, 'customers', ['retrieve', 'all', 'watching', 'watchlist']);
+    {
+      Resource$$1.call(this, api, 'customers', [
+        'retrieve', 'all',
+        'watching', 'watchlist',
+        'create', 'update',
+        'delete', 'addProduct',
+        'removeProduct'
+      ]);
+    }
   }
 
   if ( Resource$$1 ) Customer.__proto__ = Resource$$1;
@@ -273,13 +304,26 @@ var Analytics = (function (Resource$$1) {
   return Analytics;
 }(Resource));
 
+var Authorizations = (function (Resource$$1) {
+  function Authorizations(api) {
+    Resource$$1.call(this, api, 'authorizations', ['create']);
+  }
+
+  if ( Resource$$1 ) Authorizations.__proto__ = Resource$$1;
+  Authorizations.prototype = Object.create( Resource$$1 && Resource$$1.prototype );
+  Authorizations.prototype.constructor = Authorizations;
+
+  return Authorizations;
+}(Resource));
+
 var resources = {
   products    : Product,
   browse      : Browse,
   videos      : Video,
   collections : Collection,
   customers   : Customer,
-  analytics   : Analytics
+  analytics   : Analytics,
+  authorizations: Authorizations
 };
 
 if (typeof btoa === 'undefined') {

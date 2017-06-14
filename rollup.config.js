@@ -3,6 +3,7 @@ import commonjs from 'rollup-plugin-commonjs';
 import nodeResolve from 'rollup-plugin-node-resolve';
 import uglify from 'rollup-plugin-uglify';
 import conditional from 'rollup-plugin-conditional';
+import replace from 'rollup-plugin-replace';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const nodeBuild = process.env.NODE_BUILD;
@@ -20,6 +21,9 @@ export default {
         jsnext: true
       }),
     ]),
+    replace({
+      'process.env.NODE_BUILD': JSON.stringify(process.env.NODE_BUILD)
+    }),
     commonjs(),
     buble(),
     conditional(isProduction, [
