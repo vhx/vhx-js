@@ -19,7 +19,7 @@ function getMethod(params) {
 }
 
 function isHref(params) {
-  return isNaN(parseInt(params, 10));
+  return params && isNaN(parseInt(params, 10));
 }
 
 function isObject(obj) {
@@ -28,12 +28,12 @@ function isObject(obj) {
 }
 
 function isFunction(obj) {
-  return !!(obj && obj.constructor && obj.call && obj.apply);
+  return obj && !!(obj && obj.constructor && obj.call && obj.apply);
 }
 
 function generateUrl(params, resource, options) {
   if (resource.path === 'products') {
-    return createUrlWithStandardEndpoints(params, resource);
+    return createUrlWithCustomEndpoints(params, resource);
   }
 
   if (resource.path === 'videos') {
@@ -73,7 +73,7 @@ var createUrlWithCustomEndpoints = function (params, resource, options) {
     return ("" + (resource._api.protocol) + (resource._api.host) + "/" + (resource.path) + "/" + params + "/" + (options.scope));
   }
 
-  if (params && isHref(params) && !isFunction(params)) {
+  if (isHref(params) && !isFunction(params)) {
     return params;
   }
 
@@ -86,18 +86,6 @@ var createUrlWithCustomEndpoints = function (params, resource, options) {
 
 var returnDefaultHref = function (resource) {
   return ("" + (resource._api.protocol) + (resource._api.host) + "/" + (resource.path));
-};
-
-var createUrlWithStandardEndpoints = function (params, resource) {
-  if (isHref(params) && !isFunction(params)) {
-    return params;
-  }
-
-  if (!isFunction(params)) {
-    return ("" + (resource._api.protocol) + (resource._api.host) + "/" + (resource.path) + "/" + params);
-  }
-
-  return returnDefaultHref(resource);
 };
 
 var Resource = function Resource(api, path, methods, isToken) {
