@@ -1,3 +1,10 @@
+### 1.1.0
+**2016-11-15**
+* Use promises instead of callbacks
+* add analytics, browse, and customers-> watching/watchlist endpoints
+* generates both browser (client.js) and node (index.js) based builds
+* rewritten in ES6
+
 ### 1.0.0-beta.4
 **2016-11-15**
 * Update Babel presets and Babel core for IE10 fix

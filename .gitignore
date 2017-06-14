@@ -1,5 +1,6 @@
 /node_modules
 .git
-gulpfile.dev.js
 index.html
+test.js
 npm-debug.log
+.DS_STORE
