@@ -15,11 +15,11 @@ For Full API reference [go here](http://dev.vhx.tv/docs/api?javascript).
 Before requesting your first resource, you must setup your instance of the VHX Client. This can be done with either:
 
 ```js
-import VhxApi from 'vhxjs';
-const VhxApi = require('vhxjs');
+import VhxApi from 'vhxjs'; // or const VhxApi = require('vhxjs');
 
 const vhx = new VhxApi('YOUR_API_KEY_HERE');
 ```
+
 or through a standard script tag, (use client.js in the dist folder)
 ```js
 <script src="your_path/client.js"></script>
