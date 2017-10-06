@@ -65,7 +65,7 @@ var handleBrowseEndpoint = function (params, resource) {
 };
 
 var createUrlWithCustomEndpoints = function (params, resource, options) {
-  if (options && options.scope) {
+  if (options && options.scope && options.scope !== 'items') {
     if (params && isHref(params)) {
       return (params + "/" + (options.scope));
     }

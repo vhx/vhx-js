@@ -1618,6 +1618,7 @@ function isFunction(obj) {
 }
 
 function generateUrl(params, resource, options) {
+  debugger;
   if (resource.path === 'products') {
     return createUrlWithCustomEndpoints(params, resource, options);
   }

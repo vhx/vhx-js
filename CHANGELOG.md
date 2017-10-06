@@ -1,3 +1,8 @@
+### 2.0.0
+**2017-10-06**
+* Move package under @vhx namespace
+* Fix bug with when calling collection/items endpoints
+
 ### 1.1.1
 **2017-06-14**
 * Update tags
