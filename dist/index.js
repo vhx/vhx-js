@@ -9,7 +9,8 @@ request = 'default' in request ? request['default'] : request;
 var ApiConfig = {
   HOST: 'api.vhx.tv',
   PROTOCOL: 'https://',
-  TIMEOUT: '30000'
+  TIMEOUT: '30000',
+  NODE: true,
 };
 
 function getMethod(params) {
@@ -203,7 +204,11 @@ Resource.prototype.ajaxRequest = function ajaxRequest (args, params) {
 
 var Collection = (function (Resource$$1) {
   function Collection(api) {
-    Resource$$1.call(this, api, 'collections', ['all', 'retrieve', 'items']);
+    Resource$$1.call(
+      this, api,
+      'collections',
+      [ 'all', 'retrieve', 'items', 'update', 'create' ]
+    );
   }
 
   if ( Resource$$1 ) Collection.__proto__ = Resource$$1;
@@ -215,7 +220,11 @@ var Collection = (function (Resource$$1) {
 
 var Video = (function (Resource$$1) {
   function Video(api) {
-    Resource$$1.call(this, api, 'videos', ['all', 'retrieve', 'files']);
+    Resource$$1.call(
+      this, api,
+      'videos',
+      ['all', 'retrieve', 'files', 'create', 'update']
+    );
   }
 
   if ( Resource$$1 ) Video.__proto__ = Resource$$1;
@@ -227,7 +236,11 @@ var Video = (function (Resource$$1) {
 
 var Customer = (function (Resource$$1) {
   function Customer(api) {
-    Resource$$1.call(this, api, 'customers', ['retrieve', 'all', 'watching', 'watchlist']);
+    Resource$$1.call(
+      this, api,
+      'customers',
+      ['retrieve', 'all', 'watching', 'watchlist', 'addProduct', 'removeProduct', 'update' ]
+    );
   }
 
   if ( Resource$$1 ) Customer.__proto__ = Resource$$1;

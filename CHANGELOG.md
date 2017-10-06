@@ -1,3 +1,7 @@
+### 2.0.1
+**2017-10-06**
+* Add Node write methods
+
 ### 2.0.0
 **2017-10-06**
 * Move package under @vhx namespace

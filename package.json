@@ -1,6 +1,6 @@
 {
   "name": "@vhx/vhxjs",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "VHX Javascript API Client",
   "main": "dist/index.js",
   "browser": "dist/client.js",
@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "node": "NODE_BUILD=true rollup -c rollup.config.js",
-    "client": "rollup -c rollup.config.js",
+    "client": "NODE_BUILD=false rollup -c rollup.config.js",
     "production": "NODE_ENV=production npm run node; NODE_ENV=production npm run client;",
     "dev": "rollup -c -w rollup.config.js"
   },
@@ -33,6 +33,7 @@
     "rollup-plugin-conditional": "^1.1.1",
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-plugin-nodent": "^0.1.0",
+    "rollup-plugin-replace": "^2.0.0",
     "rollup-plugin-uglify": "^2.0.1",
     "rollup-watch": "^3.2.2"
   },

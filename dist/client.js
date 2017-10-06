@@ -7,7 +7,8 @@
 var ApiConfig = {
   HOST: 'api.vhx.tv',
   PROTOCOL: 'https://',
-  TIMEOUT: '30000'
+  TIMEOUT: '30000',
+  NODE: false,
 };
 
 var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
@@ -1618,7 +1619,6 @@ function isFunction(obj) {
 }
 
 function generateUrl(params, resource, options) {
-  debugger;
   if (resource.path === 'products') {
     return createUrlWithCustomEndpoints(params, resource, options);
   }
@@ -1652,7 +1652,7 @@ var handleBrowseEndpoint = function (params, resource) {
 };
 
 var createUrlWithCustomEndpoints = function (params, resource, options) {
-  if (options && options.scope) {
+  if (options && options.scope && options.scope !== 'items') {
     if (params && isHref(params)) {
       return (params + "/" + (options.scope));
     }
@@ -1790,7 +1790,11 @@ Resource.prototype.ajaxRequest = function ajaxRequest (args, params) {
 
 var Collection = (function (Resource$$1) {
   function Collection(api) {
-    Resource$$1.call(this, api, 'collections', ['all', 'retrieve', 'items']);
+    Resource$$1.call(
+      this, api,
+      'collections',
+      [ 'all', 'retrieve', 'items' ]
+    );
   }
 
   if ( Resource$$1 ) Collection.__proto__ = Resource$$1;
@@ -1802,7 +1806,11 @@ var Collection = (function (Resource$$1) {
 
 var Video = (function (Resource$$1) {
   function Video(api) {
-    Resource$$1.call(this, api, 'videos', ['all', 'retrieve', 'files']);
+    Resource$$1.call(
+      this, api,
+      'videos',
+      ['all', 'retrieve', 'files']
+    );
   }
 
   if ( Resource$$1 ) Video.__proto__ = Resource$$1;
@@ -1814,7 +1822,11 @@ var Video = (function (Resource$$1) {
 
 var Customer = (function (Resource$$1) {
   function Customer(api) {
-    Resource$$1.call(this, api, 'customers', ['retrieve', 'all', 'watching', 'watchlist']);
+    Resource$$1.call(
+      this, api,
+      'customers',
+      ['retrieve', 'all', 'watching', 'watchlist']
+    );
   }
 
   if ( Resource$$1 ) Customer.__proto__ = Resource$$1;
