@@ -1,10 +1,11 @@
-# VHX Javascript API Client
+# Vimeo OTT/VHX Javascript API Client
 
-Currently not ready for production use, but in Pre-Release. Publishable VHX API keys with limited scope will be required for use.
+Ready for use server-side, using Node. 
+Not ready for use client-side, as we currently do not offer public API keys.
 
 ### Installation
 
-`npm install vhxjs`
+`npm install @vhx/vhxjs`
 
 ### Documentation
 
@@ -12,10 +13,18 @@ For Full API reference [go here](http://dev.vhx.tv/docs/api?javascript).
 
 ### Getting Started
 
-Before requesting your first resource, you must setup your instance of the VHX Client. This can be done with either:
+Before requesting your first resource, you must setup your instance of the Vimeo OTT/VHX Client. This can be done with either:
 
+Node:
 ```js
-import VhxApi from 'vhxjs'; // or const VhxApi = require('vhxjs');
+const VhxApi = require('@vhx/vhxjs/dist/index.js');
+
+const vhx = new VhxApi('YOUR_API_KEY_HERE');
+```
+
+Client (using a module bundler like Webpack/Rollup/etc.)
+```js
+import VhxApi from '@vhx/vhxjs';
 
 const vhx = new VhxApi('YOUR_API_KEY_HERE');
 ```
@@ -32,12 +41,10 @@ Depending on the endpoint, the resource will take either:
 
 The id can either be in the form of a numeric ID or an HREF (see example below).
 
-This library uses Promises instead of callbacks. You can either use `then/catch` or `async/await` as so:
+This library uses Promises instead of callbacks. You can either use `then/catch` or `async/await`:
 
 ```js
-vhx.customers.retrieve('1234').then(function(res) {
-  console.log(res)
-});
+vhx.customers.retrieve('1234').then(res => console.log(res));
 ```
 or
 ```js
