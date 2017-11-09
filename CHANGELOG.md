@@ -1,4 +1,8 @@
 ### 2.0.1
+**2017-11-09**
+* Add missing default param
+
+### 2.0.1
 **2017-10-06**
 * Add Node write methods
 
