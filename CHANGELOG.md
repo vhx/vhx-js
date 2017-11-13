@@ -1,4 +1,8 @@
-### 2.0.1
+### 2.0.3
+**2017-11-12**
+* Fix Update/Create endpoints
+
+### 2.0.2
 **2017-11-09**
 * Add missing default param
 
