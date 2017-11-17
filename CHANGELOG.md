@@ -1,3 +1,7 @@
+### 2.1.0
+**2017-11-17**
+* Add addItem and removeItem endpoints
+
 ### 2.0.3
 **2017-11-12**
 * Fix Update/Create endpoints
