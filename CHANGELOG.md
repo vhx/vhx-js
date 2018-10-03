@@ -1,3 +1,7 @@
+### 3.0.0
+**2018-10-03**
+* Replace superagent with node-fetch
+
 ### 2.1.0
 **2017-11-17**
 * Add addItem and removeItem endpoints

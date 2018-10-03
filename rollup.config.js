@@ -4,6 +4,8 @@ import nodeResolve from 'rollup-plugin-node-resolve';
 import uglify from 'rollup-plugin-uglify';
 import conditional from 'rollup-plugin-conditional';
 import replace from 'rollup-plugin-replace';
+import filesize from 'rollup-plugin-filesize';
+import { plugin as analyze } from 'rollup-plugin-analyzer'
 
 const isProduction = process.env.NODE_ENV === 'production';
 const nodeBuild = process.env.NODE_BUILD;
@@ -15,13 +17,16 @@ export default {
   moduleName: 'VhxApi',
   sourceMap: true,
   plugins: [
+    analyze(),
     replace({
       'process.env.NODE_BUILD': JSON.parse(nodeBuild),
     }),
     conditional(!JSON.parse(nodeBuild), [
       nodeResolve({
         browser: true,
-        jsnext: true
+        jsnext: true,
+        main: true,
+        module: true
       }),
     ]),
     commonjs(),
@@ -30,6 +35,7 @@ export default {
       uglify({
         sourceMap: true
       })
-    ])
+    ]),
+    filesize(),
   ]
 };

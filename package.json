@@ -1,15 +1,13 @@
 {
   "name": "@vhx/vhxjs",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "VHX Javascript API Client",
   "main": "dist/index.js",
-  "browser": "dist/client.js",
+  "browser": {
+    "./dist/index.js": "./dist/client.js"
+  },
   "author": "VHX",
   "homepage": "https://github.com/vhx/vhx-js",
-  "engines": {
-    "node": "8.0.0",
-    "npm": "5.0.0"
-  },
   "contributors": [
     "David Gonzalez <david@vhx.tv> ",
     "Scott Robertson <scott@vhx.tv>"
@@ -18,7 +16,7 @@
     "node": "NODE_BUILD=true rollup -c rollup.config.js",
     "client": "NODE_BUILD=false rollup -c rollup.config.js",
     "production": "NODE_ENV=production npm run node; NODE_ENV=production npm run client;",
-    "dev": "rollup -c -w rollup.config.js"
+    "dev": "npm run node && npm run client"
   },
   "license": "MIT",
   "repository": {
@@ -27,18 +25,20 @@
   },
   "bugs:": "https://github.com/vhx/vhx-js/issues",
   "devDependencies": {
+    "nodemon": "^1.12.1",
     "rollup": "^0.41.6",
-    "rollup-plugin-buble": "^0.15.0",
+    "rollup-plugin-analyzer": "^2.1.0",
+    "rollup-plugin-buble": "^0.19.2",
     "rollup-plugin-commonjs": "^8.0.2",
     "rollup-plugin-conditional": "^1.1.1",
-    "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-filesize": "^4.0.1",
+    "rollup-plugin-node-resolve": "^3.4.0",
     "rollup-plugin-nodent": "^0.1.0",
     "rollup-plugin-replace": "^2.0.0",
     "rollup-plugin-uglify": "^2.0.1",
     "rollup-watch": "^3.2.2"
   },
   "dependencies": {
-    "nodemon": "^1.12.1",
-    "superagent": "^2.3.0"
+    "node-fetch": "^2.2.0"
   }
 }
