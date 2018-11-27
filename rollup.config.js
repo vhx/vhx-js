@@ -14,6 +14,10 @@ export default {
   dest: JSON.parse(nodeBuild) ? './dist/index.js' : './dist/client.js',
   moduleName: 'VhxApi',
   sourceMap: true,
+  external: ['superagent'],
+  globals: {
+    'superagent': 'superagent',
+  },
   plugins: [
     replace({
       'process.env.NODE_BUILD': JSON.parse(nodeBuild),
@@ -21,7 +25,8 @@ export default {
     conditional(!JSON.parse(nodeBuild), [
       nodeResolve({
         browser: true,
-        jsnext: true
+        jsnext: true,
+        module: true,
       }),
     ]),
     commonjs(),
