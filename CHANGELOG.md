@@ -1,4 +1,4 @@
-### 2.1.1
+### 2.1.2
 **2018-11-27**
 * Bump Nodemon for flatmap-stream vulnerability
 
