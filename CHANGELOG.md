@@ -1,3 +1,7 @@
+### 2.1.1
+**2018-11-27**
+* Bump Nodemon for flatmap-stream vulnerability
+
 ### 2.1.0
 **2017-11-17**
 * Add addItem and removeItem endpoints

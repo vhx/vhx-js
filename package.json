@@ -1,6 +1,6 @@
 {
   "name": "@vhx/vhxjs",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "VHX Javascript API Client",
   "main": "dist/index.js",
   "browser": "dist/client.js",
