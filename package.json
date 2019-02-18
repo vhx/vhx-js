@@ -39,6 +39,6 @@
     "rollup-watch": "^3.2.2"
   },
   "dependencies": {
-    "node-fetch": "^2.2.0"
+    "node-fetch": "^2.3.0"
   }
 }
